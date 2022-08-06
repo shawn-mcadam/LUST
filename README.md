@@ -1,7 +1,7 @@
 # LUST
 `LUST` (Lookup Special Tables) is a C++ library of special functions implemented using `FunC` lookup tables.
 
-This library provides LUTs for long double, double, and float for each of its special functions. These tables are built with a relative pointwise error tolerance `tol = std::numeric_limits<T>::epsilon` (where $T\in{float, double, long double}$).
+This library provides LUTs for long double, double, and float for each of its special functions. These tables are built with a relative pointwise error tolerance `tol = std::numeric_limits<T>::epsilon` (where `T\in{float, double, long double}`).
 
 See _website_ for a listing of every special function we support.
 
@@ -9,7 +9,7 @@ See _website_ for a listing of every special function we support.
 - C++11 compliant compiler
 - FunC*
 
-* None of `FunC`'s optional dependencies are required
+\* None of `FunC`'s optional dependencies are required
 
 ## Requirements to develop LUST:
 - C++11 compliant compiler
