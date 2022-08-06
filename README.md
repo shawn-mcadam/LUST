@@ -9,7 +9,7 @@ See _website_ for a listing of every special function we support.
 - C++11 compliant compiler
 - FunC*
 
-\* None of `FunC`'s optional dependencies are required
+\* Note that none of `FunC`'s optional dependencies are required
 
 ## Requirements to develop LUST:
 - C++11 compliant compiler
@@ -36,5 +36,5 @@ After make install, linking to the library (outside of cmake build) requires:
 
 `FunC` can only build LUTs over finite unions of compact intervals. So, `LUST` must use some trickery to build a LUT over unbounded sets.
 
-- eg, if $f:\mathbb{R}\to\mathbb{R}$ and we build a LUT $l$ for $g(x)=f(tan(\pi x/2))$ over $[-1,1]$ then $l(2\*\arctan(x)/\pi)\approx f(x)$ for any $x\in\mathbb{R}$.
+- eg, if $f:\mathbb{R}\to\mathbb{R}$ and we build a LUT $l$ for $g(x)=f(\tan(\pi x/2))$ over $[-1,1]$ then $l(2\*\arctan(x)/\pi)\approx f(x)$ for any $x\in\mathbb{R}$.
 
