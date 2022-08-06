@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.1)
 
 # Default to "Release" build
 SET(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build,
@@ -9,15 +9,14 @@ project(
   LUST
   LANGUAGES CXX)
 
-# Honestly I would like to play with c++20's modules so that standard might be nice
-set(CMAKE_CXX_STANDARD 20) # c++20 is a cmake version 3.12 feature
+set(CMAKE_CXX_STANDARD 11)
 
 # Using FunC to generate lookup tables
 find_package(FunC)
-#message(STATUS "Found FunC incl: $}") TODO make a FunC_INCLUDE_DIR variable
+#message(STATUS "Found FunC incl: $}") TODO make a FunC_INCLUDE_DIR and FunC_LIB_DIR variable
 
 # Generating LUTs from Boosts suite of special functions
-find_package(Boost REQUIRED)
+find_package(Boost)
 message(STATUS "Found boost incl: ${Boost_INCLUDE_DIR}")
 
 find_package(OpenMP)
