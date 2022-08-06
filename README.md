@@ -1,30 +1,42 @@
-# lookup-special-tables
-A library of special functions implemented using lookup tables.
+# LUST
+`LUST` (Lookup Special Tables) is a C++ library of special functions implemented using `FunC` lookup tables.
 
-### Thoughts:
-The good idea is coming first:
-- This library should NOT be header only!!!
-- Having users choose table bounds & tolerance is perhaps too cumbersome
-- Choose the tol & table type based on the precision used (tol = std::numeric\_limits<T>::epsilon for T\in{float, double, long double})
-- We can build a LUT over a functions entire bounds with some (hopefully cheap) transformation to make all the information we need about
-that function exist within the interval $[-1,1]$ (or whatever interval is convenient).
+This library provides LUTs for long double, double, and float for each of its special functions. These tables are built with a relative pointwise error tolerance tol = std::numeric\_limits<T>::epsilon (where T\in{float, double, long double}).
+
+`FunC` can only build LUTs over finite unions of compact intervals. So, `LUST` must use some trickery to build a LUT over unbounded sets.
+
 - eg, take $f:\mathbb{R}\to\mathbb{R} s.t. f(x) = x$. If we have a LUT $l$ for $g(x)=f(tan(\pi x/2))$ over $[-1,1]$ then $l(2\*\arctan(x)/\pi)\approx f(x)$ over $\mathbb{R}$. We'll have to
 be careful if $f(\pm\infty)=\pm\infty$, but it seems okay otherwise
-- We just need a reaaaaally fast method of computing tanx (or any other cheaper bijection)
-- We can avoid having any dependencies (other than FunC) if we include json files for each supported special function
+
+See website for a listing of every function we support.
 
 
-Other options that _might_ be worth pursuing:
-- Ideally users will just say:
-```c++
-easylut<a,b,tol,table_type,safe?> lut = function1 * function2 + ...;
-lut(x);
+## Requirements to use:
+- C++11 compliant compiler
+- FunC*
+
+* None of `FunC`'s optional dependencies are required
+
+## Requirements to develop LUST:
+- C++11 compliant compiler
+- FunC*
+- Boost
+- Armadillo
+
+## Build:
+- CMake version >= 3.1
+
 ```
-to get a LUT table\_type over $[a,b]$ with at most tol pointwise error.
+mkdir build && cd build/
+cmake -DCMAKE_INSTALL_PREFIX=<install-dir>  ..
+make install
+```
 
-- singleton class for given parameters?
-- Is it possible for the LUT to only built when operator() is called for the first time? That way we can try to make a LUT out of the whole expression
-- Maybe it's better to make the function a template type?
-- Error, bounds, and table type all template parameters?
-- If a,b are double then we'll need C++20's double templates
+After make install, linking to the library (outside of cmake build) requires:
+
+- `<install-dir>/lib` is in your `LD_LIBRARY_PATH` environment variable,
+- `<install-dir>/include/lust` is in your include flags, and
+- `-llust` is one of your linking flags
+
+
 
