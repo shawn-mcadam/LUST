@@ -1,4 +1,4 @@
-/* Approximate boost::math::expint(N,x) for N=1,2,3,4
+/* LUT of boost::math::expint(N,x) for N=1,2,3,4
  * Inverse: 
  * Derivative: 
  * */
@@ -25,45 +25,45 @@ static std::string fname = "expintN2.json";
 #ifdef LUST_DEV
 template<typename T>
 static T f(T x){
-  return boost::math::expint(2, x);
+  if(x<=0)
+    return 1;
+  else
+    return boost::math::expint(2, x);
 }
-static func::FunctionContainer<float> ffc {f<float>};
-static func::FunctionContainer<double> dfc {f<double>};
-//static func::FunctionContainer<long double> ldfc {f<long double>};
+static func::FunctionContainer<float> ffc {FUNC_SET_F(f,float)};
+static func::FunctionContainer<double> dfc {FUNC_SET_F(f,double)};
+static func::FunctionContainer<long double> ldfc {FUNC_SET_F(f,long double)};
 #else
 static func::FunctionContainer<float> ffc {nullptr};
 static func::FunctionContainer<double> dfc {nullptr};
-//static func::FunctionContainer<long double> ldfc {nullptr};
+static func::FunctionContainer<long double> ldfc {nullptr};
 #endif
 
-static func::LookupTableGenerator<float,float,double> fgen(&ffc, 0, 1);
-static func::LookupTableGenerator<double,double,boost::multiprecision::cpp_bin_float_quad> dgen(&dfc, 0, 1);
-//static func::LookupTableGenerator<long double,long double,boost::multiprecision::cpp_bin_float_oct> ldgen(&ldfc, 0, 1);
+static long double left = 1.0;
+static long double right = 2.0;
+static func::LookupTableGenerator<float,float,double> fgen(&ffc, left, right);
+static func::LookupTableGenerator<double,double,boost::multiprecision::cpp_bin_float_quad> dgen(&dfc, left, right);
+static func::LookupTableGenerator<long double,long double,boost::multiprecision::cpp_bin_float_oct> ldgen(&ldfc, left, right);
 
-#ifdef LUST_DEV
-void generate_expint(){
-  //for(unsigned int N=1; N<=4; N++){
-  //N = 2;
-  //std::string fname = "expintN" + std::to_string(N) + ".json";
-  fgen.generate_by_tol(
-      "PseudoLinearPrecomputedInterpolationTable",
-      2*std::numeric_limits<float>::epsilon(),
-      "f" + fname);
-  dgen.generate_by_tol("CubicPrecomputedInterpolationTable",
-      2*std::numeric_limits<double>::epsilon(),
-      "d" + fname);
-  //ldgen.generate_by_tol("ArmadilloPrecomputedInterpolationTable<7>",
-  //    2*std::numeric_limits<long double>::epsilon(),
-  //    "ld" + fname);
-  //}
-}
-#endif
-
-// TODO ideally we only read the file when the function is called the first time but idk if that's possible
 // TODO build an array of LUTs
-static const auto flut = fgen.generate_by_file("f"+fname);
-static const auto dlut = dgen.generate_by_file("d"+fname);
+#ifdef LUST_DEV
+static const auto flut = fgen.generate_by_tol(
+    "NonUniformPseudoLinearPrecomputedInterpolationTable",
+    1e2*std::numeric_limits<float>::epsilon(),
+    "f" + fname);
+static const auto dlut = dgen.generate_by_tol(
+    "UniformArmadilloPrecomputedInterpolationTable<7>",
+    1e5*std::numeric_limits<double>::epsilon(),
+    "d" + fname);
+static const auto ldlut = ldgen.generate_by_tol( // woefully slow...
+    "UniformArmadilloPrecomputedInterpolationTable<7>",
+    1e11*std::numeric_limits<long double>::epsilon(),
+    "ld" + fname);
+#else
+//static const auto flut = fgen.generate_by_file("f"+fname);
+//static const auto dlut = dgen.generate_by_file("d"+fname);
 //static const auto ldlut = ldgen.generate_by_file("ld"+fname);
+#endif
 
 float expint(float x){
   return (*flut)(x);
@@ -73,8 +73,8 @@ double expint(double x){
   return (*dlut)(x);
 }
 
-//long double expint(long double x){
-//  return (ldlut*)(x);
-//}
+long double expint(long double x){
+  return (*ldlut)(x);
+}
 
 } // namespace lust

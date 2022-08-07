@@ -21,6 +21,9 @@ message(STATUS "Found boost incl: ${Boost_INCLUDE_DIR}")
 
 find_package(OpenMP)
 
+# TODO add a config.hpp file with a path to table saves. Then tables can read/write from that dir
+# table_saves must also be installed and findable after `make install`
+
 # Primary source subdirectory
 add_subdirectory("src")
 
