@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
 # Default to "Release" build
 SET(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build,
@@ -7,22 +7,21 @@ SET(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build,
 
 project(
   LUST
+  VERSION 1.0
   LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 # Using FunC to generate lookup tables
-find_package(FunC)
-#message(STATUS "Found FunC incl: $}") TODO make a FunC_INCLUDE_DIR and FunC_LIB_DIR variable
+find_package(FunC REQUIRED)
+message(STATUS "Found FunC libs: ${FunC_INCLUDE_DIR}")
 
-# Generating LUTs from Boosts suite of special functions
-find_package(Boost)
-message(STATUS "Found boost incl: ${Boost_INCLUDE_DIR}")
+#find_package(Boost)
+#message(STATUS "Found boost incl: ${Boost_INCLUDE_DIR}")
+#find_package(Armadillo)
+#find_package(OpenMP)
 
-find_package(OpenMP)
-
-# TODO add a config.hpp file with a path to table saves. Then tables can read/write from that dir
-# table_saves must also be installed and findable after `make install`
+configure_file(${PROJECT_SOURCE_DIR}/cmake/config.hpp.cmake ${PROJECT_SOURCE_DIR}/src/config.hpp @ONLY)
 
 # Primary source subdirectory
 add_subdirectory("src")
