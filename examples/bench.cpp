@@ -4,8 +4,8 @@
 #define LUST_DENORMALS
 #include "lust.hpp"
 
-#define TYPE float
-//#define TYPE double
+//#define TYPE float
+#define TYPE double
 
 int main(){
   unsigned int nExperiments = 200;
@@ -21,6 +21,8 @@ int main(){
     //{"double exp2", {[](TYPE x){ return std::exp2(x); }}, {[](TYPE x){ return lust::exp2(x); }}, -1021, 1022},
     //{"subnormal double exp2", {[](TYPE x){ return std::exp2(x); }}, {[](TYPE x){ return lust::exp2(x); }}, -1074, -1023},
     {"pow", {[](TYPE x){ return std::pow((TYPE)3.1415,x); }}, {[](TYPE x){ return lust::pow((TYPE)3.1415,x); }}, -10.0, 10.0},
+    {"pow", {[](TYPE x){ return std::pow((TYPE)3.1415,x); }}, {[](TYPE x){ return lust::pow((TYPE)3.1415,x); }}, 0.0, 1.0},
+    {"pow", {[](TYPE x){ return std::pow((TYPE)3.1415,x); }}, {[](TYPE x){ return lust::pow((TYPE)3.1415,x); }}, -1.0, 0.0},
   };
 
   for(auto name_fc1_fc2_min_max : functions){

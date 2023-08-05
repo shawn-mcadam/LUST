@@ -4,6 +4,24 @@
 #pragma once
 
 namespace lust {
+namespace detail {
+template <class To, class From>
+static inline To bit_cast(const From& src) noexcept {
+  static_assert(sizeof(To) == sizeof(From), "lust::detail::bit_cast cannot cast types of unequal size but sizeof(To) != sizeof(From)");
+  static_assert(std::is_trivially_copyable<From>::value, "input type of lust::bit_cast must be trivially copyable but it is not");
+  static_assert(std::is_trivially_copyable<To>::value,   "output type of lust::bit_cast must be trivially copyable but it is not");
+  static_assert(std::is_trivially_constructible<To>::value,
+        "This implementation additionally requires "
+        "destination type to be trivially constructible");
+
+  To dst;
+  std::memcpy(&dst, &src, sizeof(To));
+  return dst;
+}
+}
+}
+
+namespace lust {
 
 /* Compute 2^x as (1 << floor(x))*2^fractional(x)
  * - Uses properties of floating point numbers. exponent(2^x) = floor(x) and we can use a LUT of 2^x over [-1,1].
@@ -15,18 +33,18 @@ static inline float exp2(const float x){
   auto fractional = exp2lutf(x-exponent);
 
 #ifndef LUST_DENORMALS
-  uint32_t result_bits = reinterpret_cast<uint32_t&>(fractional) + (exponent << 23);
+  uint32_t result_bits = detail::bit_cast<uint32_t>(fractional) + (exponent << 23);
 #else
   uint32_t result_bits;
   constexpr auto minexp = -126;
   if (x >= minexp) LUST_LIKELY {
-    result_bits = reinterpret_cast<uint32_t&>(fractional) + (exponent << 23);
+    result_bits = detail::bit_cast<uint32_t>(fractional) + (exponent << 23);
   } else {
     /* the result is a subnormal number. Recall, subnormal numbers are fixed point,
      * their exponent field is 0 and they have an explicit leading "1" */
     constexpr auto mantissa_bits = UINT32_C(0x007FFFFF);
     constexpr auto leading_one = UINT32_C(0x00800000);
-    result_bits = (reinterpret_cast<uint32_t&>(fractional) & mantissa_bits) | leading_one;
+    result_bits = (detail::bit_cast<uint32_t>(fractional) & mantissa_bits) | leading_one;
 
     /* All that's left is to bitshift and correctly round the result.
      * offset handles a special case where x is a whole number (very unlikely...) */
@@ -36,7 +54,7 @@ static inline float exp2(const float x){
     result_bits = (result_bits >> shift) + round;
   }
 #endif
-  return reinterpret_cast<float&>(result_bits);
+  return detail::bit_cast<float>(result_bits);
 }
 
 /* max error for normalized numbers: 7.8102e-15 */
@@ -45,23 +63,23 @@ static inline double exp2(const double x){
   auto fractional = exp2lutd(x-exponent);
 
 #ifndef LUST_DENORMALS
-  uint64_t result_bits = reinterpret_cast<uint64_t&>(fractional) + (exponent << 52);
+  uint64_t result_bits = detail::bit_cast<uint64_t>(fractional) + (exponent << 52);
 #else
   uint64_t result_bits;
   constexpr auto minexp = -1022;
   if (x >= minexp) LUST_LIKELY {
-    result_bits = reinterpret_cast<uint64_t&>(fractional) + (exponent << 52);
+    result_bits = detail::bit_cast<uint64_t>(fractional) + (exponent << 52);
   }else{
     constexpr auto mantissa_bits = UINT64_C(0x000FFFFFFFFFFFFF);
     constexpr auto leading_one = UINT64_C(0x0010000000000000);
-    result_bits = (reinterpret_cast<uint64_t&>(fractional) & mantissa_bits) | leading_one;
+    result_bits = (detail::bit_cast<uint64_t>(fractional) & mantissa_bits) | leading_one;
 
     const auto offset = (x == exponent) ? 0 : 1;
     const auto round  = (result_bits & (1 << (minexp + offset - exponent - 1))) ? 1 : 0;
     result_bits = (result_bits >> (minexp + offset - exponent)) + round;
   }
 #endif
-  return reinterpret_cast<double&>(result_bits);
+  return detail::bit_cast<double>(result_bits);
 }
 
 /* Return a pair containing (exponent, mantissa) of the floating point representation of x.
@@ -71,10 +89,10 @@ static inline std::pair<int32_t,float> frexp(float x){
   constexpr uint32_t mantissa_bits = UINT32_C(0x007FFFFF); /* 0x007FFFFF == 2^23-1 */
   constexpr uint32_t bias_bits     = UINT32_C(0x3F000000); /* 0x3F000000 == (126ull << 23) */
   constexpr uint32_t no_sign       = UINT32_C(0x7FFFFFFF); /* 0x7FFFFFFF == 2^32-1 */
-  int32_t absx_bits = (reinterpret_cast<int32_t&>(x) & no_sign);
+  int32_t absx_bits = (detail::bit_cast<int32_t>(x) & no_sign);
 
 #ifdef LUST_DENORMALS
-  if(reinterpret_cast<float&>(absx_bits) < FLT_MIN) LUST_UNLIKELY {
+  if(detail::bit_cast<float>(absx_bits) < FLT_MIN) LUST_UNLIKELY {
     int32_t exponent; float mantissa;
     std::tie(exponent, mantissa) = frexp(x*(UINT32_C(1) << 23));
     return std::make_pair(exponent - 23, mantissa);
@@ -83,8 +101,8 @@ static inline std::pair<int32_t,float> frexp(float x){
 
   /* get the mantissa bits of x with the exponent set to bias */
   int32_t  exponent = (absx_bits >> 23) - 126;
-  uint32_t mantissa = (reinterpret_cast<uint32_t&>(x) & mantissa_bits) | bias_bits;
-  return std::make_pair(exponent, reinterpret_cast<float&>(mantissa));
+  uint32_t mantissa = (detail::bit_cast<uint32_t>(x) & mantissa_bits) | bias_bits;
+  return std::make_pair(exponent, detail::bit_cast<float>(mantissa));
 }
 
 static inline std::pair<int64_t,double> frexp(double x){
@@ -92,10 +110,10 @@ static inline std::pair<int64_t,double> frexp(double x){
   constexpr uint64_t mantissa_bits = UINT64_C(0x000FFFFFFFFFFFFF); /* 0x000FFFFFFFFFFFFF == 2^52-1 */
   constexpr uint64_t bias_bits     = UINT64_C(0x3FE0000000000000); /* 0x3FE0000000000000 == (1022ull << 52) */
   constexpr uint64_t no_sign       = UINT64_C(0x7FFFFFFFFFFFFFFF); /* 0x7FFFFFFFFFFFFFFF == 2^64-1 */
-  int64_t absx_bits = (reinterpret_cast<int64_t&>(x) & no_sign);
+  int64_t absx_bits = (detail::bit_cast<int64_t>(x) & no_sign);
 
 #ifdef LUST_DENORMALS
-  if(reinterpret_cast<double&>(absx_bits) < DBL_MIN) LUST_UNLIKELY {
+  if(detail::bit_cast<double>(absx_bits) < DBL_MIN) LUST_UNLIKELY {
     int64_t exponent; double mantissa;
     std::tie(exponent, mantissa) = frexp(x*(UINT64_C(1) << 52));
     return std::make_pair(exponent - 52, mantissa);
@@ -104,8 +122,8 @@ static inline std::pair<int64_t,double> frexp(double x){
 
   /* grab all the mantissa bits from x and add the exponent bias to the result */
   int64_t  exponent = (absx_bits >> 52) - 1022;
-  uint64_t mantissa = (reinterpret_cast<uint64_t&>(x) & mantissa_bits) | bias_bits;
-  return std::make_pair(exponent, reinterpret_cast<double&>(mantissa));
+  uint64_t mantissa = (detail::bit_cast<uint64_t>(x) & mantissa_bits) | bias_bits;
+  return std::make_pair(exponent, detail::bit_cast<double>(mantissa));
 }
 
 /* max error for normalized numbers: 7.14416e-07 */

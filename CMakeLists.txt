@@ -21,7 +21,7 @@ message(STATUS "Found FunC libs: ${FunC_INCLUDE_DIR}")
 #find_package(Armadillo)
 #find_package(OpenMP)
 
-configure_file(${PROJECT_SOURCE_DIR}/cmake/config.hpp.cmake ${PROJECT_SOURCE_DIR}/src/config.hpp @ONLY)
+#configure_file(${PROJECT_SOURCE_DIR}/cmake/config.hpp.cmake ${PROJECT_SOURCE_DIR}/src/config.hpp @ONLY)
 
 # Primary source subdirectory
 add_subdirectory("src")
