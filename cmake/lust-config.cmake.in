@@ -1,0 +1,14 @@
+get_filename_component(LUST_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" DIRECTORY)
+include(CMakeFindDependencyMacro)
+
+list(APPEND CMAKE_MODULE_PATH ${LUST_CMAKE_DIR})
+find_dependency(FunC)
+
+list(REMOVE_AT CMAKE_MODULE_PATH -1)
+
+if(NOT TARGET LUST::LUST)
+  include("${LUST_CMAKE_DIR}/LUSTTargets.cmake")
+endif()
+
+set(LUST_LIBRARIES LUST::LUST)
+set(FunC_INCLUDE_DIR "@CMAKE_INSTALL_FULL_INCLUDEDIR@")
