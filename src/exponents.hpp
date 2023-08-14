@@ -30,7 +30,7 @@ namespace lust {
  * - max error for normalized numbers: 5.51549e-07 */
 static inline float exp2(const float x){
   const auto exponent = static_cast<int32_t>(x);
-  auto fractional = exp2lutf(x-exponent);
+  auto fractional = detail::exp2lutf(x-exponent);
 
 #ifndef LUST_DENORMALS
   uint32_t result_bits = detail::bit_cast<uint32_t>(fractional) + (exponent << 23);
@@ -60,7 +60,7 @@ static inline float exp2(const float x){
 /* max error for normalized numbers: 7.8102e-15 */
 static inline double exp2(const double x){
   const auto exponent = static_cast<int64_t>(x);
-  auto fractional = exp2lutd(x-exponent);
+  auto fractional = detail::exp2lutd(x-exponent);
 
 #ifndef LUST_DENORMALS
   uint64_t result_bits = detail::bit_cast<uint64_t>(fractional) + (exponent << 52);
@@ -130,15 +130,14 @@ static inline std::pair<int64_t,double> frexp(double x){
 static inline float log2(const float x){
   int32_t exponent; float mantissa;
   std::tie(exponent, mantissa) = frexp(x);
-  return log2lutf(mantissa) + exponent;
-  //return apply(log2lutf,mantissa) + exponent;
+  return detail::log2lutf(mantissa) + exponent;
 }
 
 /* max error for normalized numbers: 1.01926e-14 */
 static inline double log2(const double x){
   int64_t exponent; double mantissa;
   std::tie(exponent, mantissa) = frexp(x);
-  return log2lutd(mantissa) + exponent;
+  return detail::log2lutd(mantissa) + exponent;
 }
 
 /* Error of the following logarithms are proportional to the error of log2 */
@@ -151,21 +150,13 @@ static inline double log2(const double x){
 599453094172\
 321214581766l
 
-static inline float log10(const float x){
-  return INVLOG2OF10*log2(x);
-}
+static inline float log10(const float x){ return static_cast<float>(INVLOG2OF10)*log2(x); }
 
-static inline double log10(const double x){
-  return INVLOG2OF10*log2(x);
-}
+static inline double log10(const double x){ return static_cast<double>(INVLOG2OF10)*log2(x); }
 
-static inline float log(const float x){
-  return INVLOG2OFe*log2(x);
-}
+static inline float log(const float x){ return static_cast<float>(INVLOG2OFe)*log2(x); }
 
-static inline double log(const double x){
-  return INVLOG2OFe*log2(x);
-}
+static inline double log(const double x){ return static_cast<double>(INVLOG2OFe)*log2(x); }
 
 
 /* Compute x^p = 2^{p log_2(x)}

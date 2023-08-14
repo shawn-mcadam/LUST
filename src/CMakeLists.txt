@@ -1,7 +1,7 @@
 add_library(lust SHARED lookuptables.cpp)
 
 set_target_properties(lust PROPERTIES PUBLIC_HEADER "\
-exponents.hpp;lookuptablejsons.hpp;json.hpp;lust.hpp;lookuptables.hpp;config.hpp\
+exponents.hpp;lust.hpp;lookuptables.hpp;config.hpp\
 ")
 
 target_link_libraries(lust PUBLIC FunC::FunC)
