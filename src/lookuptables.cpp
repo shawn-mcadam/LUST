@@ -1,5 +1,5 @@
 #include "lookuptables.hpp"
-#include "json.hpp"
+//#include <func/json.hpp>
 
 /* hide a warning about "maybe used uninitialized variables" by setting each LookupTableParameters to {0,0,0} instead of {} */
 

@@ -27,7 +27,12 @@ message(STATUS "Found FunC libs: ${FunC_INCLUDE_DIR}")
 add_subdirectory("src")
 
 # Examples subdirectory
-add_subdirectory("examples")
+option(BUILD_EXAMPLES "Build the example codes" ON)
+if(BUILD_EXAMPLES AND CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+  include(CTest)
+  add_subdirectory("examples")
+endif()
+
 
 
 # Summarize compilation flags for quick review on configuration
